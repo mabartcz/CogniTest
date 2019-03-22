@@ -3,22 +3,23 @@
 
 # DODELAT #
 # anticheat v RT
-# sede pozadi
+# Vic desetinejch mist u RT ?
+
+# RT 10x 2-5 sec
 
 import pgzrun, random, time, datetime
 
 
 WIDTH = int(1280/2)
 HEIGHT = int(720/2)
-TITLE = "TEST"
 
+TITLE = "CogniTest"
 WHITE   =   (255, 255, 255)
 BLACK   =   (0  ,   0,   0)
 RED     =   (255,   0,   0)
 GREEN   =   (0  , 255,   0)
 BLUE    =   (0  ,   0, 255)
 BG      =   (190, 190, 190)
-
 FONT = "bastardussans"
 
 # Events
@@ -26,6 +27,8 @@ FONT = "bastardussans"
 # 2 - DSST
 # 3 - VAS
 
+
+# Variables for all
 event = 0
 saved = False
 
@@ -49,9 +52,10 @@ sim9 = Actor('znak_blank')
 wide = 50
 gap = int(wide/5)
 wpul = int((WIDTH - 9*wide - 10*gap)/2) + int(wide/2)
-h_h = int((HEIGHT/3)*0.9)
+h_h = int((HEIGHT/3)*1)
+s_h = h_h + wide*3.3
 
-sim.pos = int(WIDTH/2), int((HEIGHT/3)*2.2)
+sim.pos = int(WIDTH/2), s_h
 sim1.pos = int(wpul + gap), h_h
 sim2.pos = int(wpul + gap*2 +wide), h_h
 sim3.pos = int(wpul + gap*3 +wide*2), h_h
@@ -68,32 +72,23 @@ pressed = []
 correct = []
 round = 0
 dsst_start_time = time.time() + 1000000 # Does not affect duration, only placeholder
+dsst_correct_sum = 0
+dsst_false_sum = 0
 
 
 def draw():
     load()
     if event == 4 or event == 5:
-        screen.fill(BG)
-        sim.draw()
-        sim1.draw()
-        sim2.draw()
-        sim3.draw()
-        sim4.draw()
-        sim5.draw()
-        sim6.draw()
-        sim7.draw()
-        sim8.draw()
-        sim9.draw()
-
-        for x in range(1,10):
-            screen.draw.text(str(x), center=(int(wpul + gap * x + wide * (x-1)), h_h + wide), fontname=FONT, fontsize=32, color=BLACK)
+        dsst_draw()
 
 def update():
-    global event
+    global event, saved
 
-    dsst_duration = 3                                  # DSST duration
-    if dsst_start_time + dsst_duration < time.time():
-        event = 6
+    dsst_duration = 1                                  # DSST duration
+    if event == 4 or event == 5:
+        if dsst_start_time + dsst_duration < time.time():
+            event = 6
+
 
 
 def on_key_down(key):
@@ -108,11 +103,16 @@ def on_key_down(key):
             event = 5
 
 
-    if event == 5:
-        numbers = [keys.K_1, keys.K_2, keys.K_3, keys.K_4, keys.K_5, keys.K_6, keys.K_7, keys.K_8, keys.K_9 ]
-        if key in numbers:
+    numbers = [keys.K_1, keys.K_2, keys.K_3, keys.K_4, keys.K_5, keys.K_6, keys.K_7, keys.K_8, keys.K_9 ]
+    if key in numbers:
+        if event == 5:
             dsst_move(key)
 
+
+#-----------------------------------------------------------------------------------------------
+#***********************************************************************************************
+#-----------------------------------------------------------------------------------------------
+# Other
 
 def load():
     global event, saved
@@ -133,21 +133,33 @@ def load():
         event = 7
     elif event == 7:
         if saved == False:
-            print("Saving!")
-            screen.fill(BG)
-            # autosave data
-            f_name = "./results/dsst-" + str(datetime.datetime.now().strftime("%d-%m-%y-%H%M%S") + ".cvs")
-            file = open(f_name, "w")
-            file.write("\nTime of test," + str(datetime.datetime.now().strftime("%H:%M %d %m %Y")))
-            file.write("\nNumber of try, Reaction time")
-            for k in range(len(reaction_time)):
-                file.write("\n" + str(k) + "," + str(reaction_time[k]))
-            file.close()
-            print("Saved!")
+            save_file()
+            #print("File not saved!")
             saved = True
 
+def save_file():
+    print("Saving!")
+    screen.fill(BG)
+    # autosave data
+    f_name = "./results/dsst-" + str(datetime.datetime.now().strftime("%d-%m-%y-%H%M%S") + ".csv")
+    file = open(f_name, "w")
+    file.write("Time of test," + str(datetime.datetime.now().strftime("%H:%M %d.%m. %Y")))
+    file.write("\nReaction time")
+    file.write("\nSample,Reaction time (sec)")
+    for k in range(len(reaction_time)):
+        file.write("\n" + str(k + 1) + "," + "{0:.3f}".format(reaction_time[k]))
+        # file.write("\n" + str(k + 1) + "," + str(reaction_time[k]))
+    file.write("\nDSST")
+    file.write("\nCorrect,False\n")
+    file.write(str(dsst_correct_sum))
+    file.write(",")
+    file.write(str(dsst_false_sum))
+    file.close()
+    print("Saved!")
 
-#-----------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------
+# ***********************************************************************************************
+# -----------------------------------------------------------------------------------------------
 # Reaction time
 
 def reaction():
@@ -158,7 +170,7 @@ def reaction():
             print("Reaction time: " + str(time_end - time_start))
             reaction_time.append(time_end - time_start)     # Add RT to array
 
-            if len(reaction_time) == 3:                     # Number of measurements
+            if len(reaction_time) == 1:                     # Number of measurements
                event = 2
             else:
                 start_reaction()
@@ -171,8 +183,8 @@ def reaction():
 def start_reaction():
     global delay, time_start, press
 
-    delay = random.uniform(1,1)                            # Generate random number
-    #delay = 0.1                                             # Generate random number
+    #delay = random.uniform(1,1)                            # Generate random number
+    delay = 0.1                                             # Generate random number
     screen.fill(BG)
     clock.schedule(show_circle, delay)                      #Circle appear after delay
 
@@ -180,15 +192,15 @@ def start_reaction():
     press = True
 
 def show_circle():
-    screen.draw.filled_circle(((int(WIDTH / 2), int(HEIGHT / 2))), int(WIDTH / 4), RED)
+    screen.draw.filled_circle(((int(WIDTH / 2), int(HEIGHT / 2))), int(HEIGHT / 2.1), RED)
+
 #-----------------------------------------------------------------------------------------------
-
-
+#***********************************************************************************************
 #-----------------------------------------------------------------------------------------------
 # DSST
 
 def dsst_move(key):
-    global shuffled, pressed, correct, round, dsst_start_time, event
+    global shuffled, pressed, correct, round, dsst_start_time, event, dsst_correct_sum, dsst_false_sum
 
     random.shuffle(shuffled)
     sim_random = random.randint(1, 9)
@@ -210,27 +222,35 @@ def dsst_move(key):
 
     if round != 0:
         if pressed[round] == correct[round - 1]:
+            dsst_correct_sum += 1
             print(True)
         else:
             print(False)
+            dsst_false_sum += 1
     else:
         dsst_start_time = time.time()
 
 
     round += 1
 
-#-----------------------------------------------------------------------------------------------
+def dsst_draw():
+    screen.fill(BG)
+    sim.draw()
+    sim1.draw()
+    sim2.draw()
+    sim3.draw()
+    sim4.draw()
+    sim5.draw()
+    sim6.draw()
+    sim7.draw()
+    sim8.draw()
+    sim9.draw()
+
+    for x in range(1, 10):
+        screen.draw.text(str(x), center=(int(wpul + gap * x + wide * (x - 1)), h_h + wide), fontname=FONT, fontsize=32,
+                         color=BLACK)
+
+
 
 pgzrun.go()
-
-print("Saving!")
-# autosave data
-f_name = "./results/dsst-" + str(datetime.datetime.now().strftime("%d-%m-%y-%H%M%S") + ".cvs")
-file = open(f_name, "w")
-file.write("Time of test," + str(datetime.datetime.now().strftime("%H:%M %d %m %Y")))
-file.write("\nNumber of try, Reaction time")
-for k in range(len(reaction_time)):
-    file.write("\n" + str(k) + "," + str(reaction_time[k]))
-file.close()
-print("Saved!")
 
