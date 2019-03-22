@@ -1,11 +1,10 @@
-# Martin Barton, CTU, 2019
+# Martin Barton, CVUT, FBMI, 2019
 # martin.barton@skaut.cz
 
 # DODELAT #
 # anticheat v RT
 # Vic desetinejch mist u RT ?
-
-# RT 10x 2-5 sec
+# Font size responsive
 
 import pgzrun, random, time, datetime
 
@@ -22,15 +21,16 @@ BLUE    =   (0  ,   0, 255)
 BG      =   (190, 190, 190)
 FONT = "bastardussans"
 
-# Events
-# 1 - Reaction time
-# 2 - DSST
-# 3 - VAS
+# SETTINGS #
+rt_num_measur = 1              # Reaction time - number of measurements
+rt_delay_opt_min = 0.1            # Reaction time - interval of delay from (sec)
+rt_delay_opt_max = 0.1            # Reaction time - interval of delay to (sec)
+dsst_duration = 0.1              # DSST duration in seconds
+save_opt = False                 # False - Dont save, True = save
 
 
 # Variables for all
 event = 0
-saved = False
 
 # Variables for 1
 press = False
@@ -52,8 +52,12 @@ sim9 = Actor('znak_blank')
 wide = 50
 gap = int(wide/5)
 wpul = int((WIDTH - 9*wide - 10*gap)/2) + int(wide/2)
-h_h = int((HEIGHT/3)*1)
-s_h = h_h + wide*3.3
+h_h = int((HEIGHT/3)*1) # Height of sim1-9
+s_h = h_h + wide*3.3    # Height of sim
+
+center_h = int(HEIGHT/2)
+center_w = int(WIDTH/2)
+thick = int(gap/4)
 
 sim.pos = int(WIDTH/2), s_h
 sim1.pos = int(wpul + gap), h_h
@@ -80,11 +84,12 @@ def draw():
     load()
     if event == 4 or event == 5:
         dsst_draw()
+    if event == 8:
+        vas_draw()
 
 def update():
     global event, saved
 
-    dsst_duration = 1                                  # DSST duration
     if event == 4 or event == 5:
         if dsst_start_time + dsst_duration < time.time():
             event = 6
@@ -101,6 +106,8 @@ def on_key_down(key):
         elif event == 4:
             dsst_move(key)
             event = 5
+        elif event == 7:
+            event = 8
 
 
     numbers = [keys.K_1, keys.K_2, keys.K_3, keys.K_4, keys.K_5, keys.K_6, keys.K_7, keys.K_8, keys.K_9 ]
@@ -109,13 +116,17 @@ def on_key_down(key):
             dsst_move(key)
 
 
+    if event == 9:
+        if key == keys.RETURN:
+            vas_step()
+
 #-----------------------------------------------------------------------------------------------
 #***********************************************************************************************
 #-----------------------------------------------------------------------------------------------
 # Other
 
 def load():
-    global event, saved
+    global event, save_opt
     if event == 0:
         screen.fill(BG)
         text1 = "REACTION TIME TEST\n\npress SPACE for start"
@@ -131,11 +142,17 @@ def load():
         text1 = "VAS\n\npress SPACE for START"
         screen.draw.text(text1, center=(int(WIDTH / 2), int(HEIGHT / 2)), fontname=FONT, fontsize=32, color=BLACK)
         event = 7
-    elif event == 7:
-        if saved == False:
+    elif event == 8:
+        vas_draw()
+        event = 9
+    '''    
+    elif event == 7: 
+        if save_opt == True:
             save_file()
-            #print("File not saved!")
-            saved = True
+            save_opt = False
+        else:
+            print("File not saved!")
+    '''
 
 def save_file():
     print("Saving!")
@@ -170,7 +187,7 @@ def reaction():
             print("Reaction time: " + str(time_end - time_start))
             reaction_time.append(time_end - time_start)     # Add RT to array
 
-            if len(reaction_time) == 1:                     # Number of measurements
+            if len(reaction_time) == rt_num_measur:         # Number of measurements
                event = 2
             else:
                 start_reaction()
@@ -183,10 +200,10 @@ def reaction():
 def start_reaction():
     global delay, time_start, press
 
-    #delay = random.uniform(1,1)                            # Generate random number
-    delay = 0.1                                             # Generate random number
+    delay = random.uniform(rt_delay_opt_min,rt_delay_opt_max)# Generate random number
+    #delay = 0.1                                             # Generate random number
     screen.fill(BG)
-    clock.schedule(show_circle, delay)                      #Circle appear after delay
+    clock.schedule(show_circle, delay)                       #Circle appear after delay
 
     time_start = time.time() + delay
     press = True
@@ -247,10 +264,59 @@ def dsst_draw():
     sim9.draw()
 
     for x in range(1, 10):
-        screen.draw.text(str(x), center=(int(wpul + gap * x + wide * (x - 1)), h_h + wide), fontname=FONT, fontsize=32,
-                         color=BLACK)
+        screen.draw.text(str(x), center=(int(wpul + gap * x + wide * (x - 1)), h_h + wide), fontname=FONT, fontsize=32, color=BLACK)
+
+# -----------------------------------------------------------------------------------------------
+# ***********************************************************************************************
+# -----------------------------------------------------------------------------------------------
+# VAS
+
+def vas_draw():
+    screen.fill(BG)
+
+    # Big lines
+    screen.draw.filled_rect(Rect((gap*2,center_h),(WIDTH-gap*4, thick )), BLACK)
+    screen.draw.filled_rect(Rect((gap*2,center_h-gap*2),(thick, gap*4 )), BLACK)
+    screen.draw.filled_rect(Rect((WIDTH-gap*2,center_h-gap*2),(thick, gap*4 )), BLACK)
+    screen.draw.filled_rect(Rect((center_w,center_h-gap*2),(thick, gap*4 )), BLACK)
+    #Small left
+    screen.draw.filled_rect(Rect((int((center_w-gap*2)/5)*1+gap*2,center_h-gap),(thick, gap*2 )), BLACK)
+    screen.draw.filled_rect(Rect((int((center_w-gap*2)/5)*2+gap*2,center_h-gap),(thick, gap*2 )), BLACK)
+    screen.draw.filled_rect(Rect((int((center_w-gap*2)/5)*3+gap*2,center_h-gap),(thick, gap*2 )), BLACK)
+    screen.draw.filled_rect(Rect((int((center_w-gap*2)/5)*4+gap*2,center_h-gap),(thick, gap*2 )), BLACK)
+    # Small right
+    screen.draw.filled_rect(Rect((int((center_w-gap*2)/5)*1+gap*2+center_w-gap*2,center_h-gap),(thick, gap*2 )), BLACK)
+    screen.draw.filled_rect(Rect((int((center_w-gap*2)/5)*2+gap*2+center_w-gap*2,center_h-gap),(thick, gap*2 )), BLACK)
+    screen.draw.filled_rect(Rect((int((center_w-gap*2)/5)*3+gap*2+center_w-gap*2,center_h-gap),(thick, gap*2 )), BLACK)
+    screen.draw.filled_rect(Rect((int((center_w-gap*2)/5)*4+gap*2+center_w-gap*2,center_h-gap),(thick, gap*2 )), BLACK)
+    # numbers
+    screen.draw.text(str(0), (gap*1.5,center_h-gap*5.5), fontname=FONT, fontsize=23, color=BLACK)
+    screen.draw.text(str(10), (WIDTH-gap*3.2,center_h-gap*5.5), fontname=FONT, fontsize=23, color=BLACK)
+    screen.draw.text(str(5), (center_w-gap*0.5,center_h-gap*5.5), fontname=FONT, fontsize=23, color=BLACK)
+
+def vas_step():
+    # words
+    screen.draw.text("Bez bolesti", topleft=(gap*1.5,center_h*0.3), fontname=FONT, fontsize=23, color=BLACK)
+    screen.draw.text("Bolest hlavy", topright=(WIDTH-gap*1.5,center_h*0.3), fontname=FONT, fontsize=23, color=BLACK)
+
+    # value
+    screen.draw.text("10", center=(center_w,center_h*1.6), fontname=FONT, fontsize=35, color=BLACK)
 
 
+
+
+
+
+
+
+
+
+
+
+
+# -----------------------------------------------------------------------------------------------
+# ***********************************************************************************************
+# -----------------------------------------------------------------------------------------------
 
 pgzrun.go()
 
