@@ -1,43 +1,22 @@
 # Martin Barton, CVUT, FBMI, 2019
 # martin.barton@skaut.cz
 
-# DODELAT #
-# anticheat v RT
-# Vic desetinejch mist  - 4
-# Font size responsive
-# Kontrola VAS max score je 10
-# Texty cesky ?
-# velikost okna ?
-# ukladani VAS odpovedi vsechny ?
-# obnova programu na konci tlacitkem ? nebo ukonceni okna
-# cestina do vasu (zkusit jinej font)
-# dopsat spousteci soubor
-
 
 import pgzrun, random, time, datetime, sys
 
-# SETTINGS #
-'''
-rt_num_measur = 1                   # Reaction time - number of measurements
-rt_delay_opt_min = 0.1              # Reaction time - interval of delay from (sec)
-rt_delay_opt_max = 0.1              # Reaction time - interval of delay to (sec)
-dsst_duration = 0.1                 # DSST duration in seconds
-vas_question_l = ["Bez bolesti", "oo"]    # VAS questions left
-vas_question_r = ["Bolest hlavy", "gg"]   # VAS questions right
-save_opt = True                    # False - Dont save, True = save
-'''
+
 # SETTINGS #
 save_opt = True                   # False - Dont save, True = save
-rt_num_measur = 3                 # Reaction time - number of measurements
+rt_num_measur = 5                 # Reaction time - number of measurements
 rt_delay_opt_min = 2              # Reaction time - interval of delay from (sec)
 rt_delay_opt_max = 5              # Reaction time - interval of delay to (sec)
-dsst_duration = 10                # DSST duration in seconds
+dsst_duration = 20                # DSST duration in seconds
 vas_question_l = ["Čilý", "Znuděný", "Klidný", "Bez točení hlavy", "Příjemný", "Střízlivý", "Bez bolesti" ]     # VAS questions left
 vas_question_r = ["Ospalý", "Zaujatý" , "Napjatý", "Točení hlavy", "Nepříjemný", "Opilý","Bolest hlavy"]        # VAS questions right
 
 # Pygame zero settings
-WIDTH = int(1280/1.5)
-HEIGHT = int(720/1.5)
+WIDTH = int(1280/1)
+HEIGHT = int(720/1)
 
 TITLE = "CogniTest"
 WHITE   =   (255, 255, 255)
@@ -171,7 +150,7 @@ def load():
         event = 3
     elif event == 6:
         screen.fill(BG)
-        text1 = "VAS\n\npress SPACE for START"
+        text1 = "VAS\n\npress SPACE for START\ntype number (0-10), delete with BACKSPACE\nconfirm with ENTER"
         screen.draw.text(text1, center=(int(WIDTH / 2), int(HEIGHT / 2)), fontname=FONT, fontsize=32, color=BLACK)
         event = 7
     elif event == 9:
@@ -194,8 +173,9 @@ def save_file():
     # autosave data
     f_name = "./results/dsst-" + str(datetime.datetime.now().strftime("%d-%m-%y-%H%M%S") + ".csv")
     file = open(f_name, "w")
-    file.write("Time of test," + str(datetime.datetime.now().strftime("%H:%M %d.%m. %Y")))
 
+    file.write("sep=,")
+    file.write("\nTime of test," + str(datetime.datetime.now().strftime("%H:%M %d.%m. %Y")))
     file.write("\nReaction time")
     file.write("\nSample,Reaction time (sec)")
     for k in range(len(reaction_time)):
