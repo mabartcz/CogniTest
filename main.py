@@ -5,12 +5,16 @@
 # anticheat v RT
 # Vic desetinejch mist u RT ?
 # Font size responsive
+# Kontrola VAS max score je 10
+# Texty cesky ?
+# velikost okna
+# ukladani funguje ?
 
 import pgzrun, random, time, datetime
 
 
-WIDTH = int(1280/2)
-HEIGHT = int(720/2)
+WIDTH = int(1280/1.5)
+HEIGHT = int(720/1.5)
 
 TITLE = "CogniTest"
 WHITE   =   (255, 255, 255)
@@ -26,18 +30,21 @@ rt_num_measur = 1              # Reaction time - number of measurements
 rt_delay_opt_min = 0.1            # Reaction time - interval of delay from (sec)
 rt_delay_opt_max = 0.1            # Reaction time - interval of delay to (sec)
 dsst_duration = 0.1              # DSST duration in seconds
-save_opt = False                 # False - Dont save, True = save
+vas_question_l = ["Bez bolesti", "Levo", "3"]
+vas_question_r = ["Bolest hlavy", "Pravo", "4"]
+save_opt = True                 # False - Dont save, True = save
+
 
 
 # Variables for all
 event = 0
 
-# Variables for 1
+# Variables for RT
 press = False
 time_start = 0
 reaction_time = []
 
-# Variables for 2
+# Variables for DSST
 sim = Actor('znak_blank')
 sim1 = Actor('znak_blank')
 sim2 = Actor('znak_blank')
@@ -79,6 +86,12 @@ dsst_start_time = time.time() + 1000000 # Does not affect duration, only placeho
 dsst_correct_sum = 0
 dsst_false_sum = 0
 
+# Variables for VAS
+empty = " "
+vas_score = [empty, empty]
+vas_final = []
+vas_step = 0
+
 
 def draw():
     load()
@@ -95,9 +108,8 @@ def update():
             event = 6
 
 
-
 def on_key_down(key):
-    global event, time_end, press
+    global event, time_end, press, vas_score
     if key == keys.SPACE:
         if event == 1:
             reaction()
@@ -109,16 +121,22 @@ def on_key_down(key):
         elif event == 7:
             event = 8
 
-
+    # DSST
     numbers = [keys.K_1, keys.K_2, keys.K_3, keys.K_4, keys.K_5, keys.K_6, keys.K_7, keys.K_8, keys.K_9 ]
     if key in numbers:
         if event == 5:
             dsst_move(key)
 
-
-    if event == 9:
+    # VAS
+    if event == 8:
         if key == keys.RETURN:
-            vas_step()
+            vas_next()
+        numbers = [keys.K_1, keys.K_2, keys.K_3, keys.K_4, keys.K_5, keys.K_6, keys.K_7, keys.K_8, keys.K_9, keys.K_0]
+        if key in numbers:
+            vas_key(key.value - 48)
+        if key == keys.BACKSPACE:
+            vas_score[0] = empty
+            vas_score[1] = empty
 
 #-----------------------------------------------------------------------------------------------
 #***********************************************************************************************
@@ -142,17 +160,19 @@ def load():
         text1 = "VAS\n\npress SPACE for START"
         screen.draw.text(text1, center=(int(WIDTH / 2), int(HEIGHT / 2)), fontname=FONT, fontsize=32, color=BLACK)
         event = 7
-    elif event == 8:
-        vas_draw()
-        event = 9
-    '''    
-    elif event == 7: 
+    elif event == 9:
         if save_opt == True:
             save_file()
             save_opt = False
         else:
             print("File not saved!")
-    '''
+        event = 10
+    elif event == 10:
+        screen.fill(BG)
+        text1 = "The end\nFile was saved!"
+        screen.draw.text(text1, center=(int(WIDTH / 2), int(HEIGHT / 2)), fontname=FONT, fontsize=32, color=BLACK)
+        event = 11
+
 
 def save_file():
     print("Saving!")
@@ -161,16 +181,24 @@ def save_file():
     f_name = "./results/dsst-" + str(datetime.datetime.now().strftime("%d-%m-%y-%H%M%S") + ".csv")
     file = open(f_name, "w")
     file.write("Time of test," + str(datetime.datetime.now().strftime("%H:%M %d.%m. %Y")))
+
     file.write("\nReaction time")
     file.write("\nSample,Reaction time (sec)")
     for k in range(len(reaction_time)):
         file.write("\n" + str(k + 1) + "," + "{0:.3f}".format(reaction_time[k]))
         # file.write("\n" + str(k + 1) + "," + str(reaction_time[k]))
+
     file.write("\nDSST")
     file.write("\nCorrect,False\n")
     file.write(str(dsst_correct_sum))
     file.write(",")
     file.write(str(dsst_false_sum))
+
+    file.write("\nVAS")
+    file.write("\nQuestion, Answer ")
+    for k in range(len(vas_final)):
+        file.write("\n" + vas_question_r[k] + "," + vas_final[k])
+
     file.close()
     print("Saved!")
 
@@ -294,24 +322,44 @@ def vas_draw():
     screen.draw.text(str(10), (WIDTH-gap*3.2,center_h-gap*5.5), fontname=FONT, fontsize=23, color=BLACK)
     screen.draw.text(str(5), (center_w-gap*0.5,center_h-gap*5.5), fontname=FONT, fontsize=23, color=BLACK)
 
-def vas_step():
     # words
-    screen.draw.text("Bez bolesti", topleft=(gap*1.5,center_h*0.3), fontname=FONT, fontsize=23, color=BLACK)
-    screen.draw.text("Bolest hlavy", topright=(WIDTH-gap*1.5,center_h*0.3), fontname=FONT, fontsize=23, color=BLACK)
+    screen.draw.text(vas_question_l[vas_step], topleft=(gap*1.5,center_h*0.3), fontname=FONT, fontsize=23, color=BLACK)
+    screen.draw.text(vas_question_r[vas_step], topright=(WIDTH-gap*1.5,center_h*0.3), fontname=FONT, fontsize=23, color=BLACK)
 
     # value
-    screen.draw.text("10", center=(center_w,center_h*1.6), fontname=FONT, fontsize=35, color=BLACK)
+    screen.draw.text(vas_score[1]+vas_score[0], center=(center_w,center_h*1.6), fontname=FONT, fontsize=35, color=BLACK)
+
+def vas_key(num):
+    global vas_score
+    number = str(num)
+    if vas_score[0] == empty:
+        vas_score[0] = str(number)
+    else:
+        if vas_score[1] == empty:
+            vas_score[1] = vas_score[0]
+            vas_score[0] = str(number)
 
 
+def vas_next():
+    global vas_score, vas_step, event
+
+    if vas_score[0] == empty:
+        vas_score[0] = "0"
+    if vas_score[1] == empty:
+        vas_score[1] = "0"
+
+    vas_score.reverse()
+    final = "".join(vas_score)
+    vas_final.append(final)
+    print(final)
 
 
+    vas_score = [empty, empty]
+    vas_step += 1
 
-
-
-
-
-
-
+    if vas_step == len(vas_question_r):
+        event = 9
+    print(vas_final)
 
 
 # -----------------------------------------------------------------------------------------------
