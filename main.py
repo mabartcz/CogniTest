@@ -11,8 +11,8 @@ rt_num_measur = 5                 # Reaction time - number of measurements
 rt_delay_opt_min = 2              # Reaction time - interval of delay from (sec)
 rt_delay_opt_max = 5              # Reaction time - interval of delay to (sec)
 dsst_duration = 20                # DSST duration in seconds
-vas_question_l = ["Čilý", "Znuděný", "Klidný", "Bez točení hlavy", "Příjemný", "Střízlivý", "Bez bolesti" ]     # VAS questions left
-vas_question_r = ["Ospalý", "Zaujatý" , "Napjatý", "Točení hlavy", "Nepříjemný", "Opilý","Bolest hlavy"]        # VAS questions right
+vas_question_l = ["Čilý", "Zaujatý", "Klidný", "Bez točení hlavy", "Příjemný", "Střízlivý", "Bez bolesti" ]     # VAS questions left
+vas_question_r = ["Ospalý", "Znuděný" , "Napjatý", "Točení hlavy", "Nepříjemný", "Opilý","Bolest hlavy"]        # VAS questions right
 
 # Pygame zero settings
 WIDTH = int(1280/1)
