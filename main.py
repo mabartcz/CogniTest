@@ -7,8 +7,11 @@
 # Font size responsive
 # Kontrola VAS max score je 10
 # Texty cesky ?
-# velikost okna
-# ukladani funguje ?
+# velikost okna ?
+# ukladani VAS odpovedi vsechny ?
+# obnova programu na konci tlacitkem ?
+# cestina do vasu (zkusit jinej font)
+# dopsat spousteci soubor
 
 import pgzrun, random, time, datetime
 
@@ -26,14 +29,24 @@ BG      =   (190, 190, 190)
 FONT = "bastardussans"
 
 # SETTINGS #
-rt_num_measur = 1              # Reaction time - number of measurements
-rt_delay_opt_min = 0.1            # Reaction time - interval of delay from (sec)
-rt_delay_opt_max = 0.1            # Reaction time - interval of delay to (sec)
-dsst_duration = 0.1              # DSST duration in seconds
-vas_question_l = ["Bez bolesti", "Levo", "3"]
-vas_question_r = ["Bolest hlavy", "Pravo", "4"]
-save_opt = True                 # False - Dont save, True = save
 
+rt_num_measur = 1                   # Reaction time - number of measurements
+rt_delay_opt_min = 0.1              # Reaction time - interval of delay from (sec)
+rt_delay_opt_max = 0.1              # Reaction time - interval of delay to (sec)
+dsst_duration = 0.1                 # DSST duration in seconds
+vas_question_l = ["Bez bolesti", "oo"]    # VAS questions left
+vas_question_r = ["Bolest hlavy", "gg"]   # VAS questions right
+save_opt = True                    # False - Dont save, True = save
+
+'''
+rt_num_measur = 3                   # Reaction time - number of measurements
+rt_delay_opt_min = 2              # Reaction time - interval of delay from (sec)
+rt_delay_opt_max = 5              # Reaction time - interval of delay to (sec)
+dsst_duration = 3                 # DSST duration in seconds
+vas_question_l = ["Cilý", "Znudený", "Klidný", "Bez tocení hlavy", "Príjemný", "Strízlivý", "Bez bolesti" ]    # VAS questions left
+vas_question_r = ["Ospalý", "Zaujatý" , "Napjatý", "Tocení hlavy", "Nepríjemný", "Opilý","Bolest hlavy"]   # VAS questions right
+save_opt = True                    # False - Dont save, True = save
+'''
 
 
 # Variables for all
@@ -185,8 +198,8 @@ def save_file():
     file.write("\nReaction time")
     file.write("\nSample,Reaction time (sec)")
     for k in range(len(reaction_time)):
-        file.write("\n" + str(k + 1) + "," + "{0:.3f}".format(reaction_time[k]))
-        # file.write("\n" + str(k + 1) + "," + str(reaction_time[k]))
+        #file.write("\n" + str(k + 1) + "," + "{0:.3f}".format(reaction_time[k])) #zaokrouhluje
+        file.write("\n" + str(k + 1) + "," + str(reaction_time[k]))
 
     file.write("\nDSST")
     file.write("\nCorrect,False\n")
@@ -247,6 +260,7 @@ def show_circle():
 def dsst_move(key):
     global shuffled, pressed, correct, round, dsst_start_time, event, dsst_correct_sum, dsst_false_sum
 
+    # Randomize numbers
     random.shuffle(shuffled)
     sim_random = random.randint(1, 9)
 
@@ -279,6 +293,7 @@ def dsst_move(key):
     round += 1
 
 def dsst_draw():
+    # Draw basic DSST structer
     screen.fill(BG)
     sim.draw()
     sim1.draw()
@@ -331,6 +346,8 @@ def vas_draw():
 
 def vas_key(num):
     global vas_score
+
+    # Handle number placement
     number = str(num)
     if vas_score[0] == empty:
         vas_score[0] = str(number)
@@ -343,28 +360,38 @@ def vas_key(num):
 def vas_next():
     global vas_score, vas_step, event
 
+    # Check if empty and replace with zero
     if vas_score[0] == empty:
         vas_score[0] = "0"
     if vas_score[1] == empty:
         vas_score[1] = "0"
 
+    '''
+    # Check if not bigger than 10
+    if int("".join(vas_score)) >= 10:
+        vas_score[0] = "?"
+        vas_score[1] = "?"
+    '''
+
+    # Save to final list
     vas_score.reverse()
     final = "".join(vas_score)
     vas_final.append(final)
     print(final)
 
-
+    # Reset and move on
     vas_score = [empty, empty]
     vas_step += 1
 
+    # End condition
     if vas_step == len(vas_question_r):
         event = 9
-    print(vas_final)
 
 
 # -----------------------------------------------------------------------------------------------
 # ***********************************************************************************************
 # -----------------------------------------------------------------------------------------------
+
 
 pgzrun.go()
 
