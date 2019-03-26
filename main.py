@@ -7,10 +7,10 @@ import pgzrun, random, time, datetime, sys
 
 # SETTINGS #
 save_opt = True                   # False - Dont save, True = save
-rt_num_measur = 5                 # Reaction time - number of measurements
+rt_num_measur = 10                # Reaction time - number of measurements
 rt_delay_opt_min = 2              # Reaction time - interval of delay from (sec)
 rt_delay_opt_max = 5              # Reaction time - interval of delay to (sec)
-dsst_duration = 20                # DSST duration in seconds
+dsst_duration =  120              # DSST duration in seconds
 vas_question_l = ["Čilý", "Zaujatý", "Klidný", "Bez točení hlavy", "Příjemný", "Střízlivý", "Bez bolesti" ]     # VAS questions left
 vas_question_r = ["Ospalý", "Znuděný" , "Napjatý", "Točení hlavy", "Nepříjemný", "Opilý","Bolest hlavy"]        # VAS questions right
 
