@@ -10,9 +10,10 @@ save_opt = True                   # False - Dont save, True = save
 rt_num_measur = 10                # Reaction time - number of measurements
 rt_delay_opt_min = 2              # Reaction time - interval of delay from (sec)
 rt_delay_opt_max = 5              # Reaction time - interval of delay to (sec)
-dsst_duration =  120              # DSST duration in seconds
+dsst_duration =  90               # DSST duration in seconds
 vas_question_l = ["Čilý", "Zaujatý", "Klidný", "Bez točení hlavy", "Příjemný", "Střízlivý", "Bez bolesti" ]     # VAS questions left
 vas_question_r = ["Ospalý", "Znuděný" , "Napjatý", "Točení hlavy", "Nepříjemný", "Opilý","Bolest hlavy"]        # VAS questions right
+
 
 # Pygame zero settings
 WIDTH = int(1280/1)
@@ -82,6 +83,7 @@ empty = " "
 vas_score = [empty, empty]
 vas_final = []
 vas_step = 0
+vas_wrong = False
 
 
 def draw():
@@ -100,7 +102,7 @@ def update():
 
 
 def on_key_down(key):
-    global event, time_end, press, vas_score
+    global event, time_end, press, vas_score, vas_wrong
     if key == keys.SPACE:
         if event == 1:
             reaction()
@@ -122,10 +124,14 @@ def on_key_down(key):
 
     # VAS
     if event == 8:
-        if key == keys.RETURN:
+        if key == keys.RETURN and vas_wrong == False:
             vas_next()
         numbers = [keys.K_1, keys.K_2, keys.K_3, keys.K_4, keys.K_5, keys.K_6, keys.K_7, keys.K_8, keys.K_9, keys.K_0]
         if key in numbers:
+            if vas_wrong == True:
+                vas_score[0] = empty
+                vas_score[1] = empty
+                vas_wrong = False
             vas_key(key.value - 48)
         if key == keys.BACKSPACE:
             vas_score[0] = empty
@@ -299,6 +305,7 @@ def dsst_draw():
 # VAS
 
 def vas_draw():
+    global vas_wrong
     screen.fill(BG)
 
     # Big lines
@@ -328,8 +335,11 @@ def vas_draw():
     # value
     screen.draw.text(vas_score[1]+vas_score[0], center=(center_w,center_h*1.6), fontname=FONT, fontsize=35, color=BLACK)
 
+    if vas_score[0] == empty and vas_score[1] == empty:
+        vas_wrong = True
+
 def vas_key(num):
-    global vas_score
+    global vas_score, vas_wrong
 
     # Handle number placement
     number = str(num)
@@ -347,7 +357,9 @@ def vas_key(num):
         if int("".join(vas_score)) > 10:
             vas_score[0] = "?"
             vas_score[1] = "?"
+            vas_wrong = True
         vas_score.reverse()
+
 
 
 def vas_next():
